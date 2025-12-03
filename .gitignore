@@ -1,0 +1,12 @@
+# Context files for Cursor
+project_spec.md
+
+# Security (NEVER push these)
+.env.example
+.DS_Store
+
+# Python generated files
+__pycache__/
+*.pyc
+venv/
+.venv/
