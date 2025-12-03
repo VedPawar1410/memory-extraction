@@ -2,7 +2,7 @@
 project_spec.md
 
 # Security (NEVER push these)
-.env.example
+.env
 .DS_Store
 
 # Python generated files
