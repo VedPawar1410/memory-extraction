@@ -2,7 +2,8 @@
 
 A Streamlit-powered prototype that extracts structured memory from chat conversations and rewrites AI responses with personalized personas using Google Gemini.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://ai-companion-3vq4.onrender.com)
+
 
 ## Features
 
