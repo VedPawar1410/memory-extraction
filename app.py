@@ -30,6 +30,11 @@ def inject_custom_css():
         font-family: 'Space Grotesk', sans-serif !important;
     }
     
+    /* Force text color globally for HIGH CONTRAST */
+    .stApp, .stMarkdown, p, h1, h2, h3, h4, h5, h6, span, div, li, label {
+        color: #000000 !important;
+    }
+    
     /* Animated gradient mesh background */
     .stApp {
         background: linear-gradient(
@@ -90,10 +95,18 @@ def inject_custom_css():
         border: 2px solid #000000 !important;
         border-radius: 0px !important;
         box-shadow: 4px 4px 0px #E0E0E0 !important;
-        background-color: white !important;
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important; /* Fix for Chrome autofill */
         padding: 12px !important;
         font-size: 14px !important;
         transition: all 0.2s ease !important;
+    }
+    
+    /* Placeholder text for inputs */
+    .stTextInput > div > div > input::placeholder {
+        color: #404040 !important;
+        opacity: 1 !important;
     }
     
     .stTextInput > div > div > input:focus {
@@ -107,10 +120,18 @@ def inject_custom_css():
         border: 2px solid #000000 !important;
         border-radius: 0px !important;
         box-shadow: 4px 4px 0px #E0E0E0 !important;
-        background-color: white !important;
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important; /* Fix for Chrome autofill */
         padding: 12px !important;
         font-size: 14px !important;
         transition: all 0.2s ease !important;
+    }
+    
+    /* Placeholder text for text areas */
+    .stTextArea > div > div > textarea::placeholder {
+        color: #404040 !important;
+        opacity: 1 !important;
     }
     
     .stTextArea > div > div > textarea:focus {
@@ -124,7 +145,14 @@ def inject_custom_css():
         border: 2px solid #000000 !important;
         border-radius: 0px !important;
         box-shadow: 4px 4px 0px #E0E0E0 !important;
-        background-color: white !important;
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    
+    /* Make labels readable and bold */
+    .stTextInput label, .stTextArea label, .stSelectbox label {
+        color: #000000 !important;
+        font-weight: bold !important;
     }
     
     /* Cards / Containers */
