@@ -62,10 +62,10 @@ def main():
         api_key_input = api_key_input.strip() if api_key_input else ""
         
         # Use input if provided (and not empty after stripping), otherwise fall back to environment variable
+        # IMPORTANT: Never store user-provided API keys in os.environ as it's shared across sessions
         api_key = api_key_input if api_key_input else os.environ.get("GOOGLE_API_KEY")
         
         if api_key_input:
-            os.environ["GOOGLE_API_KEY"] = api_key_input
             st.success("✅ API Key set from input!")
         elif api_key:
             st.success("✅ API Key loaded from environment!")
