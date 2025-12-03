@@ -58,7 +58,10 @@ def main():
             placeholder="AIza..."
         )
         
-        # Use input if provided, otherwise fall back to environment variable
+        # Strip whitespace and validate input
+        api_key_input = api_key_input.strip() if api_key_input else ""
+        
+        # Use input if provided (and not empty after stripping), otherwise fall back to environment variable
         api_key = api_key_input if api_key_input else os.environ.get("GOOGLE_API_KEY")
         
         if api_key_input:
