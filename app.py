@@ -149,6 +149,50 @@ def inject_custom_css():
         color: #000000 !important;
     }
     
+    /* Select box input field */
+    .stSelectbox input {
+        color: #000000 !important;
+        background-color: #FFFFFF !important;
+    }
+    
+    /* Select box dropdown arrow icon */
+    .stSelectbox svg {
+        fill: #000000 !important;
+        color: #000000 !important;
+    }
+    
+    /* Dropdown menu options */
+    [data-baseweb="popover"] {
+        border: 2px solid #000000 !important;
+        border-radius: 0px !important;
+        box-shadow: 6px 6px 0px #000000 !important;
+    }
+    
+    /* Dropdown menu list */
+    [role="listbox"] {
+        background-color: #FFFFFF !important;
+        border-radius: 0px !important;
+    }
+    
+    /* Individual dropdown options */
+    [role="option"] {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        border-radius: 0px !important;
+    }
+    
+    /* Dropdown option hover state */
+    [role="option"]:hover {
+        background-color: #FFB3D9 !important;
+        color: #000000 !important;
+    }
+    
+    /* Selected dropdown option */
+    [role="option"][aria-selected="true"] {
+        background-color: #6C63FF !important;
+        color: #FFFFFF !important;
+    }
+    
     /* Make labels readable and bold */
     .stTextInput label, .stTextArea label, .stSelectbox label {
         color: #000000 !important;
@@ -161,6 +205,20 @@ def inject_custom_css():
         border-radius: 0px !important;
         background-color: #FFFDF5 !important;
         box-shadow: 6px 6px 0px #000000 !important;
+    }
+    
+    /* Expander header */
+    .stExpander summary {
+        background-color: #FFFDF5 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+        padding: 12px !important;
+    }
+    
+    /* Expander content area */
+    .stExpander > div > div {
+        background-color: #FFFDF5 !important;
+        color: #000000 !important;
     }
     
     /* Info/Success/Warning boxes */
@@ -186,9 +244,15 @@ def inject_custom_css():
     .stJson {
         border: 3px solid #000000 !important;
         border-radius: 0px !important;
-        background-color: #FFFDF5 !important;
+        background-color: #FFFFFF !important;
         box-shadow: 6px 6px 0px #000000 !important;
         padding: 16px !important;
+    }
+    
+    /* JSON text content */
+    .stJson pre, .stJson code {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
     }
     
     /* Markdown in columns (for extracted profile) */
