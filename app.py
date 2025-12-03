@@ -51,18 +51,23 @@ def main():
     # Sidebar for API key
     with st.sidebar:
         st.header("⚙️ Configuration")
-        api_key = st.text_input(
+        api_key_input = st.text_input(
             "Google API Key",
             type="password",
-            help="Enter your Google Gemini API key",
+            help="Enter your Google Gemini API key (or set in .env file)",
             placeholder="AIza..."
         )
         
-        if api_key:
-            os.environ["GOOGLE_API_KEY"] = api_key
-            st.success("✅ API Key set!")
+        # Use input if provided, otherwise fall back to environment variable
+        api_key = api_key_input if api_key_input else os.environ.get("GOOGLE_API_KEY")
+        
+        if api_key_input:
+            os.environ["GOOGLE_API_KEY"] = api_key_input
+            st.success("✅ API Key set from input!")
+        elif api_key:
+            st.success("✅ API Key loaded from environment!")
         else:
-            st.warning("⚠️ Please enter your Google API Key to use the app")
+            st.warning("⚠️ Please enter your Google API Key or set it in .env file")
         
         st.markdown("---")
         st.markdown("### About")
@@ -75,7 +80,7 @@ def main():
     
     # Main content area
     if not api_key:
-        st.info("👈 Please enter your Google API Key in the sidebar to get started.")
+        st.info("👈 Please enter your Google API Key in the sidebar or set it in your .env file to get started.")
         return
     
     # Section 1: Chat History Input
@@ -110,7 +115,6 @@ def main():
                     st.success("✅ Memory extraction complete!")
                 except Exception as e:
                     st.error(f"❌ Error during extraction: {str(e)}")
-                    return
     
     # Display extracted memory
     if st.session_state.user_profile:
