@@ -10,6 +10,8 @@ from pydantic import BaseModel, Field
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
+import config
+
 
 class UserProfile(BaseModel):
     """Schema for extracted user profile from chat history."""
@@ -42,9 +44,9 @@ class MemoryEngine:
         
         try:
             self.llm = ChatGoogleGenerativeAI(
-                model="gemini-2.0-flash",
+                model=config.GEMINI_MODEL,
                 google_api_key=api_key,
-                temperature=0.1  # Low temperature for more consistent extraction
+                temperature=config.EXTRACTION_TEMPERATURE
             )
             self.structured_llm = self.llm.with_structured_output(UserProfile)
         except Exception as e:

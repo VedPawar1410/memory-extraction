@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
+import config
 from memory_engine import UserProfile
 
 
@@ -33,9 +34,9 @@ class PersonalityEngine:
         
         try:
             self.llm = ChatGoogleGenerativeAI(
-                model="gemini-2.0-flash",
+                model=config.GEMINI_MODEL,
                 google_api_key=api_key,
-                temperature=0.7  # Higher temperature for creative writing
+                temperature=config.REWRITE_TEMPERATURE
             )
         except Exception as e:
             raise ValueError(f"Failed to initialize Gemini model: {str(e)}")
@@ -102,8 +103,9 @@ Be creative but authentic. Only incorporate user context when it feels natural a
                 "original_text": original_text
             })
             
-            # Extract the content from the AIMessage response
-            return result.content
+            # .text joins the text blocks into one string. .content can be a list of
+            # blocks (text + thought signatures) with Gemini 3 models.
+            return result.text
         except Exception as e:
             raise RuntimeError(f"Failed to rewrite text: {str(e)}")
     
