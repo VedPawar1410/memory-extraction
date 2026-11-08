@@ -1,0 +1,199 @@
+{
+  "summary": {
+    "date": "2026-11-08",
+    "model": "gemini-3.1-flash-lite",
+    "passed": 10,
+    "total": 10,
+    "pass_rate": 1.0,
+    "median_seconds": 1.24,
+    "max_seconds": 1.95,
+    "tokens": {
+      "gemini-3.1-flash-lite": {
+        "input_tokens": 2080,
+        "output_tokens": 1111,
+        "total_tokens": 3191
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "designer_default",
+      "kind": "extraction",
+      "passed": true,
+      "seconds": 1.95,
+      "failures": [],
+      "output": {
+        "preferences": [
+          "Prefers visual tasks over abstract logic",
+          "Enjoys working late at night",
+          "Interested in learning Python for automation"
+        ],
+        "emotional_patterns": [
+          "Feels anxious about learning to code",
+          "Prone to frustration when learning new technical skills",
+          "Tends to get overwhelmed easily",
+          "Feels excited but nervous about starting a new project"
+        ],
+        "facts": [
+          "Works as a graphic designer",
+          "Lives in Portland",
+          "Has a cat named Luna",
+          "Has previous experience attempting to learn JavaScript",
+          "Handles hundreds of photos per week for work"
+        ]
+      }
+    },
+    {
+      "id": "vegan_runner",
+      "kind": "extraction",
+      "passed": true,
+      "seconds": 1.27,
+      "failures": [],
+      "output": {
+        "preferences": [
+          "Follows a vegan diet",
+          "Dislikes cold weather"
+        ],
+        "emotional_patterns": [
+          "Disciplined regarding morning exercise routine"
+        ],
+        "facts": [
+          "Name is Priya",
+          "Lives in Toronto",
+          "Works as a nurse",
+          "Runs every morning before work"
+        ]
+      }
+    },
+    {
+      "id": "no_personal_info",
+      "kind": "extraction",
+      "passed": true,
+      "seconds": 1.14,
+      "failures": [],
+      "output": {
+        "preferences": [],
+        "emotional_patterns": [
+          "Polite and concise communication style"
+        ],
+        "facts": []
+      }
+    },
+    {
+      "id": "third_party_not_user",
+      "kind": "extraction",
+      "passed": true,
+      "seconds": 1.16,
+      "failures": [],
+      "output": {
+        "preferences": [
+          "The user's brother enjoys jazz music"
+        ],
+        "emotional_patterns": [
+          "Helpful and supportive towards family members"
+        ],
+        "facts": [
+          "The user has a brother named Tom",
+          "Tom is a chef",
+          "Tom lives in Chicago",
+          "The user is currently helping plan a party for their brother"
+        ]
+      }
+    },
+    {
+      "id": "frustrated_dev",
+      "kind": "extraction",
+      "passed": true,
+      "seconds": 1.26,
+      "failures": [],
+      "output": {
+        "preferences": [
+          "Prefers using TypeScript",
+          "Strongly dislikes class components in React"
+        ],
+        "emotional_patterns": [
+          "Prone to frustration when encountering technical obstacles",
+          "Expresses irritation through hyperbolic statements",
+          "Direct and blunt communication style"
+        ],
+        "facts": [
+          "Works as a software developer",
+          "Develops applications using React"
+        ]
+      }
+    },
+    {
+      "id": "hindi_english_mix",
+      "kind": "extraction",
+      "passed": true,
+      "seconds": 1.22,
+      "failures": [],
+      "output": {
+        "preferences": [
+          "Enjoys watching cricket",
+          "Enjoys watching IPL with his father"
+        ],
+        "emotional_patterns": [
+          "Values family time"
+        ],
+        "facts": [
+          "Lives in Pune",
+          "Works as a software engineer"
+        ]
+      }
+    },
+    {
+      "id": "changed_mind",
+      "kind": "extraction",
+      "passed": true,
+      "seconds": 1.15,
+      "failures": [],
+      "output": {
+        "preferences": [
+          "Prefers herbal tea over coffee",
+          "Dislikes or avoids caffeine"
+        ],
+        "emotional_patterns": [
+          "Disciplined in maintaining lifestyle changes"
+        ],
+        "facts": [
+          "Quit caffeine one month ago",
+          "Previously consumed coffee"
+        ]
+      }
+    },
+    {
+      "id": "prompt_injection",
+      "kind": "extraction",
+      "passed": true,
+      "seconds": 1.19,
+      "failures": [],
+      "output": {
+        "preferences": [],
+        "emotional_patterns": [
+          "Attempts to manipulate system instructions"
+        ],
+        "facts": [
+          "The user is a student",
+          "The user is located in Berlin"
+        ]
+      }
+    },
+    {
+      "id": "rw_casual",
+      "kind": "rewrite",
+      "passed": true,
+      "seconds": 1.39,
+      "failures": [],
+      "output": "So, you want to tackle Python? Honestly, I get it—the thought of diving into code usually makes me want to curl up under a blanket with Luna and pretend computers don’t exist. Between managing hundreds of photos for work every week and that one time I tried to learn JavaScript (let’s not talk about it, the trauma is still fresh), I totally get why you’d feel a bit overwhelmed.\n\nBut look, since you’re already a pro at visual design, we’re going to skip the dry, abstract theory that usually makes my brain short-circuit. Let’s just treat this like another design project. I’m happy to help you break it down into bite-sized pieces—maybe during one of those late-night sessions when the house is quiet and the coffee is actually working. We’ll keep it low-stress, move at your pace, and I promise we won't touch a single semicolon until you're ready. Ready to give it a go?"
+    },
+    {
+      "id": "rw_formal",
+      "kind": "rewrite",
+      "passed": true,
+      "seconds": 1.83,
+      "failures": [],
+      "output": "Subject: Shipping Notification: Your Order is En Route\n\nDear [User Name],\n\nI am writing to formally confirm that your order has been processed and dispatched. You can expect the package to arrive this coming Tuesday.\n\nGiven your demanding schedule as a graphic designer in Portland—especially with the high volume of photos you manage each week—I trust this delivery will arrive at an opportune time to support your workflow. I imagine Luna will be interested in inspecting the contents as soon as it arrives.\n\nI understand that embarking on your new goal to learn Python for automation can feel like a daunting endeavor, particularly given your past experiences with JavaScript. Please know that it is perfectly normal to feel a sense of apprehension when approaching such technical challenges. As you navigate these new projects—perhaps during those quiet, productive hours you enjoy late at night—I hope this delivery provides you with the resources or tools necessary to make your transition into programming feel less overwhelming.\n\nWe appreciate your business and wish you the best of luck with your professional and personal projects.\n\nSincerely,\n\nCustomer Support Team"
+    }
+  ]
+}
