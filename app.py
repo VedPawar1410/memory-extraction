@@ -5,17 +5,11 @@ A prototype that extracts structured memory from chat history
 and demonstrates personality-based response rewriting.
 """
 
-import os
 import streamlit as st
-from dotenv import load_dotenv
-import json
 
-from memory_engine import MemoryEngine, UserProfile
+from memory_engine import MemoryEngine
 from personality_engine import PersonalityEngine
 
-
-# Load environment variables
-load_dotenv()
 
 # Default dummy conversation
 DEFAULT_CHAT = """User: Hey! I've been thinking about learning Python. I'm a graphic designer based in Portland, and I feel like coding could help me automate some of my work.
@@ -54,23 +48,18 @@ def main():
         api_key_input = st.text_input(
             "Google API Key",
             type="password",
-            help="Enter your Google Gemini API key (or set in .env file)",
-            placeholder="AIza..."
+            help="Your own Google Gemini API key. It is used only for this session and never stored.",
+            placeholder="Paste your Gemini API key"
         )
         
-        # Strip whitespace and validate input
-        api_key_input = api_key_input.strip() if api_key_input else ""
+        # Bring-your-own-key: the app never falls back to a server-side key, so a public
+        # deploy can't spend the owner's quota. The key lives only in this session.
+        api_key = api_key_input.strip() if api_key_input else ""
         
-        # Use input if provided (and not empty after stripping), otherwise fall back to environment variable
-        # IMPORTANT: Never store user-provided API keys in os.environ as it's shared across sessions
-        api_key = api_key_input if api_key_input else os.environ.get("GOOGLE_API_KEY")
-        
-        if api_key_input:
-            st.success("✅ API Key set from input!")
-        elif api_key:
-            st.success("✅ API Key loaded from environment!")
+        if api_key:
+            st.success("✅ API Key set for this session")
         else:
-            st.warning("⚠️ Please enter your Google API Key or set it in .env file")
+            st.warning("⚠️ Please enter your Google Gemini API key")
         
         st.markdown("---")
         st.markdown("### About")
@@ -83,7 +72,7 @@ def main():
     
     # Main content area
     if not api_key:
-        st.info("👈 Please enter your Google API Key in the sidebar or set it in your .env file to get started.")
+        st.info("👈 Enter your Google Gemini API key in the sidebar to get started. Get one free at https://aistudio.google.com/apikey")
         return
     
     # Section 1: Chat History Input
@@ -103,7 +92,7 @@ def main():
     # Analyze button
     col1, col2 = st.columns([1, 4])
     with col1:
-        analyze_button = st.button("🔍 Analyze User", type="primary", use_container_width=True)
+        analyze_button = st.button("🔍 Analyze User", type="primary", width="stretch")
     
     if analyze_button:
         if not chat_history.strip():
@@ -193,7 +182,7 @@ def main():
             )
         
         with col2:
-            transform_button = st.button("✨ Transform Response", type="primary", use_container_width=True)
+            transform_button = st.button("✨ Transform Response", type="primary", width="stretch")
         
         if transform_button:
             if not generic_response.strip():

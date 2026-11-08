@@ -1,5 +1,7 @@
-streamlit
-langchain-google-genai
-langchain-core
-pydantic
-python-dotenv
+# Runtime dependencies, pinned to the versions verified in Nov 2026.
+# Unpinned deps broke this app once (langchain-google-genai 4.x changed .content).
+streamlit==1.67.0
+langchain-google-genai==4.4.3
+langchain-core==1.7.6
+pydantic==2.14.3
+python-dotenv==1.2.4

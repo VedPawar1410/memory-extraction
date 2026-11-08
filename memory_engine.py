@@ -90,16 +90,3 @@ Each item should be a clear, standalone statement."""),
             return result
         except Exception as e:
             raise RuntimeError(f"Failed to extract memory from chat: {str(e)}")
-    
-    def extract_memory(self, chat_history: str) -> UserProfile:
-        """
-        Legacy method name for backward compatibility.
-        Alias for extract_from_chat.
-        
-        Args:
-            chat_history: Raw chat conversation text
-            
-        Returns:
-            UserProfile with extracted information
-        """
-        return self.extract_from_chat(chat_history)

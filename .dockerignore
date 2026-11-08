@@ -1,0 +1,9 @@
+# Keep secrets and local junk out of the Docker image
+.env
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.DS_Store
+project_spec.md

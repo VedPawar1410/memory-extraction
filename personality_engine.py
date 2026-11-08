@@ -4,8 +4,6 @@ Personality Engine Module
 Rewrites AI responses based on extracted personas and memory context.
 """
 
-from typing import Optional
-from pydantic import BaseModel
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -108,32 +106,3 @@ Be creative but authentic. Only incorporate user context when it feels natural a
             return result.text
         except Exception as e:
             raise RuntimeError(f"Failed to rewrite text: {str(e)}")
-    
-    def rewrite_response(
-        self,
-        original_response: str,
-        persona: str,
-        memory: Optional[UserProfile] = None
-    ) -> str:
-        """
-        Legacy method for backward compatibility.
-        Alias for rewrite_reply.
-        
-        Args:
-            original_response: The original text/response to rewrite
-            persona: The persona style to apply
-            memory: Optional UserProfile to override the instance profile
-            
-        Returns:
-            Rewritten text that matches the persona
-        """
-        # If a different memory/profile is provided, temporarily use it
-        if memory is not None:
-            original_profile = self.user_profile
-            self.user_profile = memory
-            try:
-                return self.rewrite_reply(original_response, persona)
-            finally:
-                self.user_profile = original_profile
-        else:
-            return self.rewrite_reply(original_response, persona)
