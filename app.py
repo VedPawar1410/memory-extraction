@@ -7,6 +7,7 @@ and demonstrates personality-based response rewriting.
 
 import streamlit as st
 
+import config
 from memory_engine import MemoryEngine
 from personality_engine import PersonalityEngine
 
@@ -31,191 +32,225 @@ AI: Night owl programmer with a cat companion - classic! When do you want to sta
 User: Maybe this weekend? I'm pretty excited but also nervous. I tend to get overwhelmed easily when learning new things."""
 
 
+DEFAULT_RESPONSE = (
+    "I can help you learn programming. Let's start with the basics and work "
+    "through some examples together. Practice is key to success."
+)
+
+PERSONAS = [
+    "friendly and encouraging",
+    "professional and formal",
+    "casual and humorous",
+    "empathetic and supportive",
+    "enthusiastic and energetic",
+    "calm and patient",
+    "mentor-like and wise",
+]
+
+# (title, icon, UserProfile field, badge color)
+PROFILE_SECTIONS = [
+    ("Facts", ":material/badge:", "facts", "blue"),
+    ("Preferences", ":material/favorite:", "preferences", "violet"),
+    ("Emotional patterns", ":material/mood:", "emotional_patterns", "orange"),
+]
+
+
+def parse_chat(chat_log: str) -> list[tuple[str, str]]:
+    """Split a 'User: ... / AI: ...' transcript into (role, text) turns for the preview."""
+    turns = []
+    for line in chat_log.splitlines():
+        speaker, sep, text = line.partition(":")
+        role = speaker.strip().lower()
+        if sep and role in ("user", "ai", "assistant"):
+            turns.append(("user" if role == "user" else "assistant", text.strip()))
+        elif line.strip() and turns:
+            # A line without a speaker continues the previous turn
+            turns[-1] = (turns[-1][0], turns[-1][1] + "\n" + line.strip())
+    return turns
+
+
+def render_sidebar() -> str:
+    """API key input and app info. Returns the key, or "" if none was entered."""
+    with st.sidebar:
+        st.subheader(":material/key: Your API key")
+        key_input = st.text_input(
+            "Google Gemini API key",
+            type="password",
+            placeholder="Paste your Gemini API key",
+            help="Used only for this browser session and never stored.",
+        )
+        # Bring-your-own-key: the app never falls back to a server-side key, so a public
+        # deploy can't spend the owner's quota. The key lives only in this session.
+        api_key = key_input.strip() if key_input else ""
+
+        if api_key:
+            st.success("Key set for this session", icon=":material/check_circle:")
+        else:
+            st.caption("[Get a free key from Google AI Studio](https://aistudio.google.com/apikey)")
+
+        st.divider()
+        st.subheader(":material/info: How it works")
+        st.markdown(
+            "1. Paste a conversation\n"
+            "2. Gemini extracts a structured profile\n"
+            "3. Pick a persona to rewrite a reply using that profile"
+        )
+        st.caption(":material/lock: Your key is never stored or logged.")
+        st.badge(config.GEMINI_MODEL, icon=":material/memory:", color="gray")
+    return api_key
+
+
+def render_conversation(api_key: str) -> None:
+    """Step 1: chat input with a chat-bubble preview, plus the extract button."""
+    with st.container(border=True):
+        st.subheader(":material/forum: 1. Conversation")
+        edit_tab, preview_tab = st.tabs(["Edit", "Preview"])
+        with edit_tab:
+            chat_history = st.text_area(
+                "Chat history",
+                value=DEFAULT_CHAT,
+                height=300,
+                label_visibility="collapsed",
+                help="Use 'User:' and 'AI:' at the start of each turn.",
+            )
+        with preview_tab, st.container(height=300, border=False):
+            turns = parse_chat(chat_history)
+            if not turns:
+                st.caption("Start lines with 'User:' or 'AI:' to see the chat preview.")
+            for role, text in turns:
+                avatar = ":material/person:" if role == "user" else ":material/smart_toy:"
+                with st.chat_message(role, avatar=avatar):
+                    st.markdown(text)
+
+        if st.button(
+            "Extract profile",
+            type="primary",
+            icon=":material/psychology:",
+            disabled=not api_key,
+        ):
+            if not chat_history.strip():
+                st.error("Please paste a conversation first.", icon=":material/error:")
+                return
+            with st.status("Analyzing the conversation...") as status:
+                try:
+                    status.write(f"Sending the chat to {config.GEMINI_MODEL}")
+                    profile = MemoryEngine(api_key=api_key).extract_from_chat(chat_history)
+                except Exception as e:
+                    status.update(label="Extraction failed", state="error", expanded=True)
+                    st.error(str(e), icon=":material/error:")
+                    return
+                status.update(label="Profile extracted", state="complete")
+            st.session_state.user_profile = profile
+            st.session_state.rewrite = None  # an old rewrite used the old profile
+            st.toast("Profile ready", icon=":material/check_circle:")
+
+
+def render_profile() -> None:
+    """Step 2: the extracted profile as three cards."""
+    with st.container(border=True):
+        st.subheader(":material/person: 2. Extracted profile")
+        profile = st.session_state.user_profile
+        if not profile:
+            st.caption("Run **Extract profile** to see what the model learns about the user.")
+            return
+
+        for column, (title, icon, field, color) in zip(st.columns(3), PROFILE_SECTIONS):
+            items = getattr(profile, field)
+            with column, st.container(border=True, height="stretch"):
+                st.markdown(f"**{icon} {title}** :{color}-badge[{len(items)}]")
+                if items:
+                    st.markdown("\n".join(f"- {item}" for item in items))
+                else:
+                    st.caption("Nothing found")
+
+        with st.expander("Raw JSON", icon=":material/data_object:"):
+            st.json(profile.model_dump())
+
+
+def render_rewrite(api_key: str) -> None:
+    """Step 3: rewrite a generic reply in a chosen persona, shown before vs after."""
+    with st.container(border=True):
+        st.subheader(":material/theater_comedy: 3. Personalized rewrite")
+        profile = st.session_state.user_profile
+
+        generic_response = st.text_area("Generic AI response", value=DEFAULT_RESPONSE, height=100)
+        persona = st.pills(
+            "Persona",
+            PERSONAS,
+            default=PERSONAS[0],
+            format_func=str.capitalize,
+            required=True,  # one persona is always selected
+        )
+
+        if st.button(
+            "Rewrite response",
+            type="primary",
+            icon=":material/auto_awesome:",
+            disabled=not (api_key and profile),
+            help=None if profile else "Extract a profile first",
+        ):
+            if not generic_response.strip():
+                st.error("Please enter a response to rewrite.", icon=":material/error:")
+            else:
+                with st.spinner(f"Rewriting as {persona}..."):
+                    try:
+                        engine = PersonalityEngine(user_profile=profile, api_key=api_key)
+                        rewritten = engine.rewrite_reply(original_text=generic_response, persona=persona)
+                        # Keep the result in session state so it survives reruns
+                        st.session_state.rewrite = {
+                            "persona": persona,
+                            "original": generic_response,
+                            "text": rewritten,
+                        }
+                    except Exception as e:
+                        st.error(str(e), icon=":material/error:")
+
+        result = st.session_state.rewrite
+        if result:
+            before, after = st.columns(2)
+            with before, st.container(border=True, height="stretch"):
+                st.markdown(":gray-badge[Before] **Generic reply**")
+                st.markdown(result["original"])
+            with after, st.container(border=True, height="stretch"):
+                st.markdown(f":violet-badge[After] **{result['persona'].capitalize()}**")
+                st.markdown(result["text"])
+
+
 def main():
     """Main application entry point."""
     st.set_page_config(
         page_title="AI Memory & Personality Engine",
-        page_icon="🧠",
-        layout="wide"
+        page_icon=":material/psychology:",
+        layout="wide",
     )
-    
-    st.title("🧠 AI Memory & Personality Engine")
-    st.markdown("Extract structured memory from conversations and rewrite responses with personality.")
-    
-    # Sidebar for API key
-    with st.sidebar:
-        st.header("⚙️ Configuration")
-        api_key_input = st.text_input(
-            "Google API Key",
-            type="password",
-            help="Your own Google Gemini API key. It is used only for this session and never stored.",
-            placeholder="Paste your Gemini API key"
-        )
-        
-        # Bring-your-own-key: the app never falls back to a server-side key, so a public
-        # deploy can't spend the owner's quota. The key lives only in this session.
-        api_key = api_key_input.strip() if api_key_input else ""
-        
-        if api_key:
-            st.success("✅ API Key set for this session")
-        else:
-            st.warning("⚠️ Please enter your Google Gemini API key")
-        
-        st.markdown("---")
-        st.markdown("### About")
-        st.markdown("""
-        This app demonstrates:
-        - 📝 Memory extraction from chat logs
-        - 🎭 Personality-based response rewriting
-        - 🤖 Powered by Google Gemini
-        """)
-    
-    # Main content area
+    st.session_state.setdefault("user_profile", None)
+    st.session_state.setdefault("rewrite", None)
+
+    api_key = render_sidebar()
+
+    st.title("AI Memory & Personality Engine")
+    st.markdown(
+        "Turn a raw conversation into a structured user profile, then rewrite "
+        "replies so they feel personal.  \n"
+        ":violet-badge[:material/forum: Paste a chat] "
+        ":violet-badge[:material/psychology: Extract a profile] "
+        ":violet-badge[:material/auto_awesome: Personalize replies]"
+    )
     if not api_key:
-        st.info("👈 Enter your Google Gemini API key in the sidebar to get started. Get one free at https://aistudio.google.com/apikey")
-        return
-    
-    # Section 1: Chat History Input
-    st.header("1️⃣ Chat History Analysis")
-    
-    chat_history = st.text_area(
-        "Paste Chat History Here",
-        value=DEFAULT_CHAT,
-        height=300,
-        help="Paste a conversation between a user and AI to extract memory"
-    )
-    
-    # Initialize session state for storing extracted memory
-    if "user_profile" not in st.session_state:
-        st.session_state.user_profile = None
-    
-    # Analyze button
-    col1, col2 = st.columns([1, 4])
-    with col1:
-        analyze_button = st.button("🔍 Analyze User", type="primary", width="stretch")
-    
-    if analyze_button:
-        if not chat_history.strip():
-            st.error("❌ Please provide a chat history to analyze.")
-        else:
-            with st.spinner("Analyzing chat history..."):
-                try:
-                    # Initialize memory engine and extract profile
-                    memory_engine = MemoryEngine(api_key=api_key)
-                    user_profile = memory_engine.extract_from_chat(chat_history)
-                    st.session_state.user_profile = user_profile
-                    st.success("✅ Memory extraction complete!")
-                except Exception as e:
-                    st.error(f"❌ Error during extraction: {str(e)}")
-    
-    # Display extracted memory
-    if st.session_state.user_profile:
-        st.subheader("📊 Extracted User Profile")
-        
-        # Create three columns for the profile data
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.markdown("**👤 Facts**")
-            if st.session_state.user_profile.facts:
-                for fact in st.session_state.user_profile.facts:
-                    st.markdown(f"- {fact}")
-            else:
-                st.markdown("*None extracted*")
-        
-        with col2:
-            st.markdown("**❤️ Preferences**")
-            if st.session_state.user_profile.preferences:
-                for pref in st.session_state.user_profile.preferences:
-                    st.markdown(f"- {pref}")
-            else:
-                st.markdown("*None extracted*")
-        
-        with col3:
-            st.markdown("**🎭 Emotional Patterns**")
-            if st.session_state.user_profile.emotional_patterns:
-                for pattern in st.session_state.user_profile.emotional_patterns:
-                    st.markdown(f"- {pattern}")
-            else:
-                st.markdown("*None extracted*")
-        
-        # Show JSON view in expander
-        with st.expander("📄 View Raw JSON"):
-            profile_dict = {
-                "facts": st.session_state.user_profile.facts,
-                "preferences": st.session_state.user_profile.preferences,
-                "emotional_patterns": st.session_state.user_profile.emotional_patterns
-            }
-            st.json(profile_dict)
-    
-    # Section 2: Personality Testing
-    st.markdown("---")
-    st.header("2️⃣ Test Personality Rewriting")
-    
-    if not st.session_state.user_profile:
-        st.info("👆 Please analyze a chat history first to extract user profile.")
-    else:
-        # Input for generic AI response
-        generic_response = st.text_area(
-            "Generic AI Response",
-            value="I can help you learn programming. Let's start with the basics and work through some examples together. Practice is key to success.",
-            height=100,
-            help="Enter a generic AI response to transform"
+        st.info(
+            "Add your Google Gemini API key in the sidebar to run the demo. "
+            "[Get one free](https://aistudio.google.com/apikey).",
+            icon=":material/key:",
         )
-        
-        # Persona selection
-        col1, col2 = st.columns([2, 3])
-        
-        with col1:
-            persona = st.selectbox(
-                "Select Persona",
-                options=[
-                    "friendly and encouraging",
-                    "professional and formal",
-                    "casual and humorous",
-                    "empathetic and supportive",
-                    "enthusiastic and energetic",
-                    "calm and patient",
-                    "mentor-like and wise"
-                ],
-                help="Choose the personality style for the rewritten response"
-            )
-        
-        with col2:
-            transform_button = st.button("✨ Transform Response", type="primary", width="stretch")
-        
-        if transform_button:
-            if not generic_response.strip():
-                st.error("❌ Please provide a response to transform.")
-            else:
-                with st.spinner(f"Rewriting with '{persona}' persona..."):
-                    try:
-                        # Initialize personality engine and rewrite
-                        personality_engine = PersonalityEngine(
-                            user_profile=st.session_state.user_profile,
-                            api_key=api_key
-                        )
-                        transformed_response = personality_engine.rewrite_reply(
-                            original_text=generic_response,
-                            persona=persona
-                        )
-                        
-                        # Display results
-                        st.subheader("🎭 Transformed Response")
-                        
-                        # Show before and after
-                        col1, col2 = st.columns(2)
-                        
-                        with col1:
-                            st.markdown("**📝 Original**")
-                            st.info(generic_response)
-                        
-                        with col2:
-                            st.markdown(f"**✨ {persona.title()}**")
-                            st.success(transformed_response)
-                        
-                    except Exception as e:
-                        st.error(f"❌ Error during transformation: {str(e)}")
+
+    render_conversation(api_key)
+    render_profile()
+    render_rewrite(api_key)
+
+    st.caption(
+        "Built with Streamlit, LangChain and Google Gemini · "
+        "[Source on GitHub](https://github.com/VedPawar1410/memory-extraction)"
+    )
 
 
 if __name__ == "__main__":

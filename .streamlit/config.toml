@@ -1,0 +1,26 @@
+# Native Streamlit theme. No custom CSS on purpose: CSS that targets Streamlit's
+# internal class names breaks between versions; these options are a stable API.
+
+[theme]
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFontWeights = [700, 600, 600]
+baseRadius = "medium"
+showWidgetBorder = true
+
+[theme.light]
+primaryColor = "#5B5BD6"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F5F6F8"
+textColor = "#1F2330"
+borderColor = "#E3E5EA"
+
+[theme.dark]
+primaryColor = "#8B8DF0"
+backgroundColor = "#0F1117"
+secondaryBackgroundColor = "#1A1D26"
+textColor = "#E7E9EE"
+borderColor = "#2A2E3A"
+
+[client]
+# Hide the developer menu for a cleaner public demo.
+toolbarMode = "minimal"
