@@ -60,7 +60,7 @@ The eval covers: the sample chat, a chat with no personal info (must stay near-e
 | "Analyze" button | `404 NOT_FOUND`: model retired | Works |
 | Rewritten reply | Raw `[{'type': 'text', 'text': ...}]` shown in the UI | Plain prose |
 | Live app | Used a server key, which was invalid (`API_KEY_INVALID`) for every visitor | Visitor's own key only |
-| Dependencies | Unpinned | Pinned (`requirements.txt`) |
+| Dependencies | Unpinned | Fully locked: 69 packages incl. transitive (`requirements.txt`) |
 | Tests | None | 23 offline tests + live-model eval |
 | Docker image | `COPY . .` would bake a local `.env` into the image | `.dockerignore` keeps it out |
 | UI | Default Streamlit, emoji labels | Themed light/dark, chat preview, profile cards, persona pills |
@@ -82,7 +82,8 @@ memory-extraction/
 │   ├── cases.py            # 8 extraction + 2 rewrite cases
 │   └── run_eval.py         # Runs them on the real model → reports/eval_results.json
 ├── reports/eval_results.json
-├── requirements.txt        # Runtime deps, pinned
+├── requirements.in         # Direct runtime deps (edit this)
+├── requirements.txt        # Lockfile generated from requirements.in (every package pinned)
 ├── requirements-dev.txt    # + pytest
 ├── pytest.ini
 ├── Dockerfile / .dockerignore
@@ -116,12 +117,20 @@ pytest
 python -m evals.run_eval
 ```
 
+**Update dependencies:** edit `requirements.in`, then regenerate the lockfile with [uv](https://docs.astral.sh/uv/) and rerun the tests:
+
+```bash
+uv pip compile requirements.in --universal --python-version 3.11 -o requirements.txt
+```
+
+`--universal` resolves for every platform at once, so the same file works on macOS and on Render's Linux image.
+
 **Change the model** without touching code: set `GEMINI_MODEL`, for example `GEMINI_MODEL=gemini-3.8-flash streamlit run app.py`.
 
 ## Deployment
 
 - **Platform:** Render free web service `ai-companion`, Docker runtime, auto-deploys on every push to `main`.
-- **Build:** `Dockerfile` (Python 3.11 slim, `pip install -r requirements.txt`). **Start:** `streamlit run app.py --server.port=8501 --server.address=0.0.0.0`.
+- **Build:** `Dockerfile` (Python 3.11 slim, `pip install -r requirements.txt`, the lockfile). **Start:** `streamlit run app.py --server.port=8501 --server.address=0.0.0.0`.
 - **Env vars:** none required. Optional `GEMINI_MODEL`. Do **not** set `GOOGLE_API_KEY`; the app ignores it by design.
 - **Health check:** `/_stcore/health` (in `render.yaml`; for the dashboard-created service, set it under Settings → Health Check Path).
 - **Cold starts:** the free instance spins down when idle; the first request can take ~50 s.
@@ -136,7 +145,6 @@ python -m evals.run_eval
 - **The key passes through the server.** It's never stored or logged, but it's sent to this Streamlit server over HTTPS and held in session memory. Visitors have to trust the operator; only a client-side app could avoid that.
 - **Prompt injection** is covered by a single case.
 - **Model retirement will happen again.** `GEMINI_MODEL` makes it a one-line fix, but the default will need updating.
-- **Only direct dependencies are pinned**, not transitive ones (no lockfile).
 - **The Docker image was not built locally** (no Docker on the dev machine); Render's build is the real test of the Dockerfile.
 
 ## Learning log: mistakes and what I learned
@@ -180,8 +188,9 @@ I built this in layers. Each layer records what went wrong and the lesson.
 | 3.5 | UI redesign with `.streamlit/config.toml` and native components only | Professional look that survives upgrades. Fixes 2.1. Also kept the rewrite result in session state so it no longer vanished on rerun. |
 | 3.6 | Offline tests with a `FakeGemini`, plus a separate live-model eval | Tests guard contracts for free (verified: reintroducing `.content` or the key fallback fails them). The eval measures quality, latency and tokens. Fixes 1.5. |
 | 3.7 | README and `render.yaml` rewritten and checked from a fresh clone | Fixes 2.3 and 2.4. |
+| 3.8 | Lockfile: `requirements.in` compiled with `uv pip compile --universal` into a fully pinned `requirements.txt` | Pinning only the 5 direct deps still let ~64 transitive packages drift; bug 1.2 shows what one silent version change can do. The lock matched the tested versions exactly, and the eval scored 10/10 again on it. |
 
-*Known gaps I chose not to fix:* a small single-run eval; no lockfile for transitive deps; over-personalized rewrites; the key passes through the server (only a client-side rewrite avoids that); Docker not built locally.
+*Known gaps I chose not to fix:* a small eval set; dev tools (pytest) not locked; over-personalized rewrites; the key passes through the server (only a client-side rewrite avoids that); Docker not built locally.
 
 ### Key takeaways
 
@@ -193,7 +202,6 @@ I built this in layers. Each layer records what went wrong and the lesson.
 
 ## Future improvements
 
-- A lockfile (`uv pip compile`) so transitive deps are pinned too.
 - A bigger eval set, run several times, with an LLM-as-judge for rewrite quality.
 - A prompt tweak so the rewriter only uses profile details that fit the message.
 - A client-side version (static site calling Gemini from the browser) so keys never touch a server.
