@@ -1,8 +1,13 @@
+# Render Blueprint. The live service (ai-companion) was created in the Render
+# dashboard, so this file documents its settings and powers the "Deploy to
+# Render" button for anyone forking the repo. Dashboard settings win for the
+# live service.
 services:
   - type: web
-    name: memory-extraction
+    name: ai-companion
     runtime: docker
     plan: free
+    healthCheckPath: /_stcore/health
     # No GOOGLE_API_KEY here on purpose: visitors bring their own key.
     envVars:
       - key: GEMINI_MODEL
